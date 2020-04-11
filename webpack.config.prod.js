@@ -8,7 +8,7 @@ const ImageminPlugin = require("imagemin-webpack-plugin").default;
 const MomentLocalesPlugin = require("moment-locales-webpack-plugin");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin"); // to use with transpileOnly in ts-loader
 const path = require("path");
-const dotenv = require("dotenv").config({ path: __dirname + "/.env" });
+const dotenv = require("dotenv").config({ path: path.resolve(__dirname, "./.env") });
 
 class WebpackConfig {
     setModeResolve() {

@@ -1,4 +1,5 @@
-import log from "./Log";
+import Log from "./Log";
+import { NotFoundException } from "./Exception";
 
 export type TGenericObject<TValue> = {
     [key: string]: TValue;
@@ -6,16 +7,26 @@ export type TGenericObject<TValue> = {
 
 export class AjaxHandler {
 
-    public static getRequest(url: string): Promise<any> {
+    public static getRequest(url: string, contentType = "application/json"): Promise<any> {
         return new Promise(async (resolve, reject) => {
             try {
-                const response: Response = await fetch(url);
+                const opts: RequestInit = {
+                    method: "GET",
+                    mode: "cors",
+                    headers: {
+                        "Content-Type": contentType
+                    }
+                };
+                const response: Response = await fetch(url, opts);
+
                 if (response.ok) {
-                    return resolve(response.json());
+                    return resolve(response.text());
+                }
+                else if (response.status === 404) {
+                    throw new NotFoundException(await response.text());
                 }
                 else {
-                    const err = await response.json();
-                    throw new Error(err.message);
+                    throw new Error(await response.text());
                 }
             }
             catch (err) {
@@ -78,9 +89,9 @@ export class AjaxHandler {
                     return resolve(response.json());
                 }
                 else {
-                    log.info("a", "postRequest() in AjaxHandler");
+                    Log.info("a", "postRequest() in AjaxHandler");
                     const err = await response.json();
-                    log.trace(err);
+                    Log.trace(err);
                     if (err instanceof Array) {
                         throw new Error(err[0].msg); // Get only the first express-validator result
                     }
@@ -90,8 +101,8 @@ export class AjaxHandler {
                 }
             }
             catch (err) {
-                log.info("b");
-                log.error(err);
+                Log.info("b");
+                Log.error(err);
                 return reject(err);
             }
         });

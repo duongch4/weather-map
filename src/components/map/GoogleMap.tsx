@@ -33,7 +33,7 @@ export class GoogleMap extends Component<GoogleMapProps, any> {
             }
             // Below is important.
             // We cannot access google.maps until it"s finished loading
-            s.addEventListener("load", (_) => {
+            s.addEventListener("load", () => {
                 this.onScriptLoad();
             });
         }
@@ -45,7 +45,6 @@ export class GoogleMap extends Component<GoogleMapProps, any> {
     public render = () => {
         return (
             <div id={this.props.id} />
-            // <div style={{ width: 900, height: 500 }} id={this.props.id} />
         );
     }
 }

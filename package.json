@@ -5,7 +5,6 @@
     "main": "index.js",
     "scripts": {
         "build-prod": "npm install && npm run build && npm run build-types && npm prune --production",
-        "prebuild": "./node_modules/rimraf/bin.js ./dist/*",
         "build": "webpack --config=webpack.config.prod.js",
         "build-dev": "npm run prebuild && npm run build-types && webpack --progress --display-modules --config=webpack.config.dev.js",
         "build-types": "tsc --emitDeclarationOnly --p ./tsconfig.json",

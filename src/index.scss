@@ -7,7 +7,7 @@
     --section-margin-top: 0em;
     --section-font-weight: 700;
 
-    --line-height: 1.75em;
+    --line-height: 1.5em;
     --letter-spacing: 0.02em;
 
     --headers-font-family: "Roboto Slab";
@@ -25,14 +25,12 @@
     --link-font-family: "Roboto Slab";
     --link-font-weight: 700;
 
-    --padding-section: 2em 10% 2em 10%;
-    --padding-navbar:  0    9% 0    9%;
+    --padding-section: 2em 10%;
+    --padding-navbar:  0em 9%;
+
+    --progress-bar-margin-top: 3.6em;
   
     --font-size-navbar-brand: 2em;
-}
-
-.App {
-    text-align: center;
 }
 
 body h1, h2, h3, h4, h5, h6 {
@@ -54,6 +52,7 @@ body h1 strong, h2 strong, h3 strong, h4 strong, h5 strong, h6 strong {
 }
 
 body p {
+    text-align: left;
 	line-height: var(--line-height);
     letter-spacing: var(--letter-spacing);
     font-family: var(--body-font-family);
@@ -78,4 +77,22 @@ body a {
     color: var(--main-color);
     font-family: var(--link-font-family);
     font-weight: var(--link-font-weight);
+}
+
+body .btn {
+    $color: #DCAF68;
+    background-color: var(--main-color);
+    border-color: var(--main-color);
+    color: white;
+    margin: 5px;
+    &:hover {
+        background-color: darken($color, 10%);
+        border-color: lighten($color, 10%);
+        color: white;
+    }
+    &:focus {
+        outline: 0;
+        -webkit-box-shadow: 0 0 0 0.2rem darken($color, 20%);
+        box-shadow: 0 0 0 0.2rem darken($color, 20%);
+    }
 }

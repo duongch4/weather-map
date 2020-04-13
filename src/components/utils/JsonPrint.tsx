@@ -1,12 +1,12 @@
 import React from "react";
 
 type JsonPrintProps = {
-    data: {};
+    data: any;
 };
 
-function isEmptyObj(obj: {}): boolean {
-    return Object.keys(obj).length === 0 || typeof obj === "undefined";
-}
+const isEmptyObj = (obj: any): boolean => {
+    return typeof obj === "undefined" || Object.keys(obj).length === 0;
+};
 
 export const JsonPrint = (props: JsonPrintProps): React.ReactElement => {
     if (!isEmptyObj(props.data)) {

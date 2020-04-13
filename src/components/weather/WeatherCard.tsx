@@ -1,53 +1,43 @@
 import React, { Component } from "react";
-import { AjaxHandler } from "../../utils/AjaxHandler";
-import { getJsonFromXml } from "../../utils/XmlToJson";
-import { JsonPrint } from "../utils/JsonPrint";
-import { AlertMessage } from "../utils/AlertMessage";
+import { WeatherFormat } from "./WeatherFeed";
 
-type WeatherProps = {
+type WeatherCardProps = {
+    onUpdate: (cityCode: string) => Promise<void>;
+    city: string;
     cityCode: string;
+    weather: WeatherFormat;
 };
 
-type WeatherState = {
-    weather: {};
-    errMessage: string;
-};
+export class WeatherCard extends Component<WeatherCardProps, any> {
 
-export class Weather extends Component<WeatherProps, WeatherState> {
-    public readonly state: Readonly<WeatherState> = {
-        weather: {},
-        errMessage: ""
-    };
-
-    public async componentDidMount() {
-        try {
-            const url = `https://weather.gc.ca/rss/city/${this.props.cityCode}_e.xml`;
-            const responseXmlText = await AjaxHandler.getRequest(url, "application/xml");
-            const responseXmlDoc = new DOMParser().parseFromString(responseXmlText, "application/xml");
-            const responseJson = getJsonFromXml(responseXmlDoc);
-            this.setState({
-                weather: responseJson
-            });
-        }
-        catch (err) {
-            this.setState({
-                errMessage: `Code: ${err.code}; Status: ${err.status}`
-            });
-        }
+    private onClick = async (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+        event.preventDefault();
+        await this.props.onUpdate(this.props.cityCode);
     }
 
     public render() {
         return (
             <div className="card">
-                <AlertMessage message={this.state.errMessage} />
                 <div className="card-body">
-                    <h5 className="card-title">Weather Card</h5>
-                    <h6 className="card-subtitle mb-2 text-muted">Card subtitle</h6>
+                    <h5 className="card-title text-center">{`${this.props.city}, BC`}</h5>
+                    <h6 className="card-subtitle mb-2 text-muted text-center">{this.props.weather.current?.title.split(":")[1]}</h6>
+                    <hr />
+                    <p className="card-text" dangerouslySetInnerHTML={{ __html: this.props.weather.current?.summary.text as string }} />
+                    <hr />
                     <p className="card-text">
-                        <JsonPrint data={this.state.weather} />
+                        <b>Watches/Warnings</b>: {this.props.weather.watches?.summary.text}
                     </p>
-                    <a href="#" className="card-link">Card link</a>
-                    <a href="#" className="card-link">Another link</a>
+                    <hr />
+                    <div className="outer-block">
+                        <div className="inline-block">
+                            <button type="button" className="btn" onClick={this.onClick}>Update</button>
+                        </div>
+                        <div className="inline-block float-right">
+                            <a className="btn" href={this.props.weather.current?.link.href} target="_blank" rel="noopener noreferrer">
+                                Forecasts
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         );

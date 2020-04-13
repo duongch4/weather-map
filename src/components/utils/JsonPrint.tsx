@@ -1,10 +1,10 @@
 import React from "react";
 
 type JsonPrintProps = {
-    data: {};
+    data: any;
 };
 
-const isEmptyObj = (obj: {}): boolean => {
+const isEmptyObj = (obj: any): boolean => {
     return typeof obj === "undefined" || Object.keys(obj).length === 0;
 };
 

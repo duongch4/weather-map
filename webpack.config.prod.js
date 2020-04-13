@@ -219,8 +219,7 @@ class WebpackConfig {
                 new webpack.DefinePlugin({
                     "process.env": JSON.stringify(dotenv.parsed)
                 }),
-                new webpack.EnvironmentPlugin(["GOOGLE_MAP_API_KEY"])
-                // new webpack.EnvironmentPlugin(["NODE_ENV", "DEBUG", "GOOGLE_MAP_API_KEY"])
+                new webpack.EnvironmentPlugin(["NODE_ENV", "DEBUG", "GOOGLE_MAP_API_KEY"])
             ],
             externals: {
                 "react": "React",

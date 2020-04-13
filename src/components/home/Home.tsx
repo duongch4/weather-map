@@ -19,6 +19,9 @@ type HomeState = {
     };
     errMessage: string;
     progress: number;
+    markers: {
+        [cityCode: string]: google.maps.Marker;
+    };
 };
 
 export class Home extends Component<HomeProps, HomeState> {
@@ -26,7 +29,8 @@ export class Home extends Component<HomeProps, HomeState> {
     public readonly state: Readonly<HomeState> = {
         weather: {},
         errMessage: "",
-        progress: 0
+        progress: 0,
+        markers: {}
     };
 
     private formatData = (cityCode: string, weatherFeed: WeatherFeed): WeatherFormat => {
@@ -49,7 +53,7 @@ export class Home extends Component<HomeProps, HomeState> {
         return result;
     }
 
-    private getWeatherInfo = async (cityCode: string) => {
+    private getWeatherInfo = async (city: string, cityCode: string) => {
         try {
             const url = `https://weather.gc.ca/rss/city/${cityCode}_e.xml`;
             const responseXmlText = await AjaxHandler.getRequest(url, "application/xml");
@@ -64,8 +68,11 @@ export class Home extends Component<HomeProps, HomeState> {
 
             this.setState({
                 weather: this.state.weather,
-                progress: progress
+                progress: progress,
             });
+
+            this.updateInfoWindow(city, cityCode);
+            this.updateOneMarker(cityCode);
         }
         catch (err) {
             this.setState({
@@ -83,7 +90,7 @@ export class Home extends Component<HomeProps, HomeState> {
 
     public componentDidMount() {
         for (const city in LOCATIONS) {
-            this.getWeatherInfo(LOCATIONS[city].code);
+            this.getWeatherInfo(city, LOCATIONS[city].code);
         }
     }
 
@@ -104,6 +111,29 @@ export class Home extends Component<HomeProps, HomeState> {
             );
         });
         infoWindow.open(map);
+    }
+
+    private updateInfoWindow = (city: string, cityCode: string) => {
+        if (document.getElementById("info-window")) {
+            render(
+                <WeatherCard
+                    onUpdate={this.getWeatherInfo}
+                    city={city}
+                    cityCode={cityCode}
+                    weather={this.state.weather[cityCode]}
+                />,
+                document.getElementById("info-window")
+            );
+        }
+    }
+
+    private updateOneMarker = (cityCode: string) => {
+        this.state.markers[cityCode]?.setLabel({
+            text: this.state.weather[cityCode].current?.title.split(":")[1] as string,
+            color: "red",
+            fontSize: "16px",
+            fontWeight: "bold"
+        });
     }
 
     public render() {
@@ -134,7 +164,7 @@ export class Home extends Component<HomeProps, HomeState> {
                                     const marker = new window.google.maps.Marker({
                                         position: { lat: LOCATIONS[city].lat, lng: LOCATIONS[city].lng },
                                         map: map,
-                                        title: city,
+                                        title: city, // Acting as an ID for this marker
                                         animation: google.maps.Animation.DROP,
                                         icon: markerIcon,
                                         label: {
@@ -144,6 +174,9 @@ export class Home extends Component<HomeProps, HomeState> {
                                             fontWeight: "bold"
                                         }
                                     });
+
+                                    this.state.markers[LOCATIONS[city].code] = marker;
+
                                     marker.addListener("click", (e) => {
                                         this.createInfoWindow(e, map, city, LOCATIONS[city].code);
                                     });

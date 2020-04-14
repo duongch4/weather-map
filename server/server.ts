@@ -1,6 +1,6 @@
 import { ExpressServer } from "./ExpressServer";
 
-const port = process.env.PORT || "3000";
+const port = process.env?.PORT || "3000";
 let server = new ExpressServer().listen(port);
 
 if (module.hot) {

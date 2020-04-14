@@ -7,8 +7,10 @@ const OptimizeCSSAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const ImageminPlugin = require("imagemin-webpack-plugin").default;
 const MomentLocalesPlugin = require("moment-locales-webpack-plugin");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin"); // to use with transpileOnly in ts-loader
+const nodeExternals = require("webpack-node-externals"); // for backend
 const path = require("path");
 const dotenv = require("dotenv").config({ path: path.resolve(__dirname, "./.env") });
+const envkeys = require("./envkeys.config");
 
 class WebpackConfig {
     setModeResolve() {
@@ -28,8 +30,7 @@ class WebpackConfig {
             options: {
                 babelrc: true,
                 cacheDirectory: true
-            },
-            exclude: /node_modules/
+            }
         };
     }
 
@@ -80,7 +81,7 @@ class WebpackConfig {
 
     setFileLoaderClient() {
         return {
-            test: /\.(jpe?g|png|gif|svg|pdf|mp4|7z)$/,
+            test: /\.(jpe?g|png|gif|svg|pdf)$/,
             use: [
                 {
                     loader: "file-loader",
@@ -126,8 +127,12 @@ class WebpackConfig {
                 eslint: true,
                 tsconfig: tsconfigPath,
                 async: false, // check type/lint first then build
-                workers: ForkTsCheckerWebpackPlugin.ONE_CPU
+                workers: ForkTsCheckerWebpackPlugin.TWO_CPUS_FREE // recommended - leave two CPUs free (one for build, one for system)
             }),
+            new webpack.DefinePlugin({
+                "process.env": JSON.stringify(dotenv.parsed)
+            }),
+            new webpack.EnvironmentPlugin(envkeys.ENV_KEYS) // For CI production process!!!
         ];
     }
 
@@ -156,6 +161,7 @@ class WebpackConfig {
             output: {
                 filename: "[name].[contenthash:8].js",
                 path: outPath,
+                publicPath: "/" // (this + app.get("/*", ...)) fix client-side routing in prod mode
             },
             module: {
                 rules: [
@@ -216,10 +222,6 @@ class WebpackConfig {
                     chunkfilename: "[id].[hash].css"
                 }),
                 new ImageminPlugin({}),
-                new webpack.DefinePlugin({
-                    "process.env": JSON.stringify(dotenv.parsed)
-                }),
-                new webpack.EnvironmentPlugin(["NODE_ENV", "DEBUG", "GOOGLE_MAP_API_KEY"])
             ],
             externals: {
                 "react": "React",
@@ -229,13 +231,76 @@ class WebpackConfig {
             },
         };
     }
+
+    setServerConfig(
+        fromDir = "./server", entryTs = "server.ts", toDir = "./dist",
+        toServerFile = "server.js", instanceName = "server",
+        tsconfigPath = "./tsconfig.server.json"
+    ) {
+        const entryTsPath = path.resolve(__dirname, fromDir, entryTs);
+        const outPath = path.resolve(__dirname, toDir);
+
+        if (dotenv.parsed["OVERNIGHT_LOGGER_MODE"] && dotenv.parsed["OVERNIGHT_LOGGER_MODE"] === "FILE") {
+            this.setServerLogPath();
+        }
+
+        return {
+            name: instanceName,
+            target: "node",
+            ...this.setModeResolve(),
+            entry: [entryTsPath],
+            output: {
+                filename: toServerFile,
+                path: outPath
+            },
+            module: {
+                rules: [
+                    this.setJavascriptSourceMapLoader(),
+                    this.setTranspilationLoader(),
+                    this.setFileLoaderServer()
+                ]
+            },
+            optimization: {
+                minimizer: [this.setOptMinimizerUglifyJs()]
+            },
+            plugins: this.setCommonPlugins(tsconfigPath),
+            externals: [nodeExternals()],
+            node: {
+                // console: false,
+                // globale: false,
+                // process: false,
+                // Buffer: false,
+                __filename: false,
+                __dirname: false
+            }
+        };
+    }
+
+    setServerLogPath() {
+        const logFileDir = path.join(__dirname, "log");
+        const today = new Date().toDateString().split(" ").join("_");
+        const logFilePath = path.join(logFileDir, `backend_${today}.log`);
+        if (!fs.existsSync(logFileDir)) {
+            fs.mkdirSync(logFileDir);
+        }
+        dotenv.parsed["OVERNIGHT_LOGGER_FILEPATH"] = logFilePath;
+    }
 }
 
 module.exports = () => {
-    return new WebpackConfig().setClientConfig(
-        fromDir = "./src", entryTs = "index.tsx", entryHtml = "index.html",
-        toDir = "./dist", instanceName = "client",
-        htmlTitle = "Weather Map", faviconPath = "./src/assets/png/titleImg.png",
-        tsconfigPath = path.resolve(__dirname, "./tsconfig.json")
+    const webpackConfig = new WebpackConfig();
+
+    const client = webpackConfig.setClientConfig(
+        fromDir = "./client", entryTs = "index.tsx", entryHtml = "index.html",
+        toDir = "./dist/client", instanceName = "client",
+        htmlTitle = "MERN", faviconPath = "./client/assets/png/titleImg.png",
+        tsconfigPath = path.resolve(__dirname, "./tsconfig.client.json")
     );
+    const server = webpackConfig.setServerConfig(
+        fromDir = "./server", entryTs = "server.ts", toDir = "./dist",
+        toServerFile = "server.js", instanceName = "server",
+        tsconfigPath = path.resolve(__dirname, "./tsconfig.server.json")
+    );
+
+    return [client, server];
 };

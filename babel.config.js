@@ -8,12 +8,7 @@ module.exports = (api) => {
         [
             "@babel/preset-env",
             {
-                "debug": true,
-                // "useBuiltIns": "usage",
-                // // "useBuiltIns": "entry",
-                // // "corejs": 3,
-                // "corejs": { "version": "3.6", "proposals": true },
-                // "modules": "commonjs"
+                "targets": {"esmodules": true} // Enable async/await for Server Controllers
             }
         ],
         "@babel/preset-react",

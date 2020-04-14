@@ -4,4 +4,5 @@ module.exports = {
         "postcss-preset-env": {},
         "cssnano": {},
     },
+    parser: "postcss-scss" // Allow comments in SCSS
 };

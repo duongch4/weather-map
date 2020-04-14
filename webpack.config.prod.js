@@ -293,7 +293,7 @@ module.exports = () => {
     const client = webpackConfig.setClientConfig(
         fromDir = "./client", entryTs = "index.tsx", entryHtml = "index.html",
         toDir = "./dist/client", instanceName = "client",
-        htmlTitle = "MERN", faviconPath = "./client/assets/png/titleImg.png",
+        htmlTitle = "Weather Map", faviconPath = "./client/assets/png/titleImg.png",
         tsconfigPath = path.resolve(__dirname, "./tsconfig.client.json")
     );
     const server = webpackConfig.setServerConfig(

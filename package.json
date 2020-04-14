@@ -4,7 +4,7 @@
     "description": "T-MERN App",
     "main": "dist/server.js",
     "scripts": {
-        "build-prod": "npm install && npm run build && npm run build-types && npm prune --production",
+        "build-prod": "npm ci && npm run build && npm run build-types && npm prune --production",
         "heroku-postbuild": "npm run build-prod",
         "prebuild": "rimraf ./dist/*",
         "build": "webpack --config=webpack.config.prod.js",

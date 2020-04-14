@@ -240,7 +240,7 @@ class WebpackConfig {
         const entryTsPath = path.resolve(__dirname, fromDir, entryTs);
         const outPath = path.resolve(__dirname, toDir);
 
-        if (dotenv.parsed["OVERNIGHT_LOGGER_MODE"] && dotenv.parsed["OVERNIGHT_LOGGER_MODE"] === "FILE") {
+        if (dotenv.parsed && dotenv.parsed["OVERNIGHT_LOGGER_MODE"] && dotenv.parsed["OVERNIGHT_LOGGER_MODE"] === "FILE") {
             this.setServerLogPath();
         }
 

@@ -29,8 +29,8 @@ export const WeatherCard = (props: WeatherCardProps) => (
                 </div>
                 <div className="inline-block float-right">
                     <a className="btn" href={props.weather.current?.link.href} target="_blank" rel="noopener noreferrer">
-                        Forecasts
-                            </a>
+                        Forecast
+                    </a>
                 </div>
             </div>
         </div>

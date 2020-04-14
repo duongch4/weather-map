@@ -7,7 +7,7 @@ type ProgressBarProps = {
 
 export const ProgressBar = (props: ProgressBarProps) => {
     const progressStyle = {
-        height: "5px",
+        height: "10px",
         visibility: (props.hide) ? "hidden" : "visible" as "visible" | "hidden"
     };
 
@@ -17,7 +17,7 @@ export const ProgressBar = (props: ProgressBarProps) => {
 
     return (
         <div className="progress" style={progressStyle}>
-            <div className="progress-bar progress-bar-striped" style={progressBarStyle} />
+            <div className="progress-bar bg-info progress-bar-striped" style={progressBarStyle}>{props.progress}</div>
         </div>
     );
 };

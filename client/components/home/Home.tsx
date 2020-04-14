@@ -3,10 +3,11 @@ import { render } from "react-dom";
 import { GoogleMap } from "../map/GoogleMap";
 import { WeatherCard } from "../weather/WeatherCard";
 import { LOCATIONS } from "../../config/location";
-import { WeatherFeed, WeatherFormat } from "../weather/WeatherFeed";
+import { WeatherFormat } from "../weather/WeatherFeed";
 import { AjaxHandler } from "../../utils/AjaxHandler";
-import { getJsonFromXml } from "../../utils/XmlToJson";
 import { AlertMessage } from "../utils/AlertMessage";
+import { TResponse } from "../../communication/TResponse";
+import { SERVER_DOMAIN } from "../../config/config";
 
 type HomeProps = {
     hideProgressBar: () => void;
@@ -33,33 +34,11 @@ export class Home extends Component<HomeProps, HomeState> {
         markers: {}
     };
 
-    private formatData = (cityCode: string, weatherFeed: WeatherFeed): WeatherFormat => {
-        const result: WeatherFormat = {
-            watches: undefined,
-            current: undefined,
-            forecasts: []
-        };
-        for (const entry of weatherFeed.entry) {
-            if (entry.id.includes(`${cityCode}_cc`)) {
-                result.current = entry;
-            }
-            else if (entry.id.includes(`${cityCode}_w`)) {
-                result.watches = entry;
-            }
-            else {
-                result.forecasts.push(entry);
-            }
-        }
-        return result;
-    }
-
     private getWeatherInfo = async (city: string, cityCode: string) => {
         try {
-            const url = `https://weather.gc.ca/rss/city/${cityCode}_e.xml`;
-            const responseXmlText = await AjaxHandler.getRequest(url, "application/xml");
-            const responseXmlDoc = new DOMParser().parseFromString(responseXmlText, "application/xml");
-            const responseJson = getJsonFromXml(responseXmlDoc) as WeatherFeed;
-            this.state.weather[cityCode] = this.formatData(cityCode, responseJson);
+            const url = `${SERVER_DOMAIN}/api/weather/${cityCode}`;
+            const responseJson = await AjaxHandler.getRequest(url) as TResponse;
+            this.state.weather[cityCode] = responseJson.payload as WeatherFormat;
 
             const loadedCount = Object.keys(this.state.weather).length;
             const total = Object.keys(LOCATIONS).length;
@@ -75,8 +54,9 @@ export class Home extends Component<HomeProps, HomeState> {
             this.updateOneMarker(cityCode);
         }
         catch (err) {
+            const errResponse = JSON.parse(err.message) as TResponse;
             this.setState({
-                errMessage: `Code: ${err.code}; Status: ${err.status}`
+                errMessage: `Code: ${errResponse.code}` + "\n" + `Status: ${errResponse.status}` + "\n" + `Message: ${errResponse.message}`
             });
         }
     }
@@ -138,7 +118,11 @@ export class Home extends Component<HomeProps, HomeState> {
 
     public render() {
         if (this.state.progress < 100) {
-            return <div>{undefined}</div>;
+            return (
+                <div id="home" className="container-fluid">
+                    <AlertMessage message={this.state.errMessage} />
+                </div>
+            );
         }
         else {
             return (

@@ -7,6 +7,7 @@ import { WeatherFormat } from "../weather/WeatherFeed";
 import { AjaxHandler } from "../../utils/AjaxHandler";
 import { AlertMessage } from "../utils/AlertMessage";
 import { TResponse } from "../../communication/TResponse";
+import * as mapMarkerIcon from "../../assets/svg/mapMarkerIcon.svg";
 
 type HomeProps = {
     hideProgressBar: () => void;
@@ -134,7 +135,7 @@ export class Home extends Component<HomeProps, HomeState> {
                             }}
                             onMapLoad={(map) => {
                                 const markerIcon = {
-                                    url: "http://image.flaticon.com/icons/svg/252/252025.svg",
+                                    url: mapMarkerIcon,
                                     scaledSize: new google.maps.Size(30, 30),
                                     origin: new google.maps.Point(0, 0),
                                     anchor: new google.maps.Point(14, 30),

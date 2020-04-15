@@ -7,7 +7,6 @@ import { WeatherFormat } from "../weather/WeatherFeed";
 import { AjaxHandler } from "../../utils/AjaxHandler";
 import { AlertMessage } from "../utils/AlertMessage";
 import { TResponse } from "../../communication/TResponse";
-import { SERVER_DOMAIN } from "../../config/config";
 
 type HomeProps = {
     hideProgressBar: () => void;
@@ -34,10 +33,9 @@ export class Home extends Component<HomeProps, HomeState> {
         markers: {}
     };
 
-    private getWeatherInfo = async (city: string, cityCode: string) => {
-        try {
-            const url = `${SERVER_DOMAIN}/api/weather/${cityCode}`;
-            const responseJson = await AjaxHandler.getRequest(url) as TResponse;
+    private getWeatherInfo = (city: string, cityCode: string): Promise<void> => {
+        const url = `/api/weather/${cityCode}`;
+        return AjaxHandler.getRequest(url).then((responseJson: TResponse) => {
             this.state.weather[cityCode] = responseJson.payload as WeatherFormat;
 
             const loadedCount = Object.keys(this.state.weather).length;
@@ -52,13 +50,12 @@ export class Home extends Component<HomeProps, HomeState> {
 
             this.updateInfoWindow(city, cityCode);
             this.updateOneMarker(cityCode);
-        }
-        catch (err) {
-            const errResponse = JSON.parse(err.message) as TResponse;
+        }).catch((err) => {
+            const errResponse = err.response.data as TResponse;
             this.setState({
                 errMessage: `Code: ${errResponse.code}` + "\n" + `Status: ${errResponse.status}` + "\n" + `Message: ${errResponse.message}`
             });
-        }
+        });
     }
 
     private setProgressBar(progress: number) {
@@ -152,6 +149,7 @@ export class Home extends Component<HomeProps, HomeState> {
                                         animation: google.maps.Animation.DROP,
                                         icon: markerIcon,
                                         label: {
+                                            // text: "labelText",
                                             text: labelText,
                                             color: "red",
                                             fontSize: "16px",

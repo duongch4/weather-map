@@ -10,35 +10,43 @@ import { JSDOM } from "jsdom";
 @Controller("api/weather")
 export class WeatherController {
 
+    @Get()
+    public getWeatherTest(_req: Request, res: Response) {
+        const response: TResponse = {
+            status: "OK",
+            code: 200,
+            payload: "this.formatData(cityCode, responseJson)",
+            message: "Successfully retrieved data"
+        };
+        return res.status(200).json(response);
+    }
+
     @Get(":cityCode")
-    public getWeather(req: Request, res: Response) {
-        return new Promise (async (resolve, reject) => {
-            const cityCode = req.params.cityCode;
-            try {
-                const url = `https://weather.gc.ca/rss/city/${cityCode}_e.xml`;
-                const responseXmlText = await AjaxHandler.getRequest(url, "application/xml");
-                const dom = new JSDOM(""); // Mimic Browser DOM
-                const DOMParser = dom.window.DOMParser;
-                const responseXmlDoc = new DOMParser().parseFromString(responseXmlText, "application/xml");
-                const responseJson = getJsonFromXml(responseXmlDoc) as WeatherFeed;
-                const response: TResponse = {
-                    status: "OK",
-                    code: 200,
-                    payload: this.formatData(cityCode, responseJson),
-                    message: "Successfully retrieved data"
-                };
-                return resolve(res.status(200).json(response));
-            }
-            catch (err) {
-                let error;
-                switch (true) {
-                    case err instanceof NotFoundException:
-                        error = new NotFoundException(`Cannot find weather information for city code: "${cityCode}"`);
-                        return reject(res.status(404).json(error.response));
-                    default:
-                        error = new InternalServerException(err.message);
-                        return reject(res.status(500).json(error.response));
-                }
+    public getWeather(req: Request, res: Response): Promise<any> {
+        const cityCode = req.params.cityCode;
+        const url = `https://weather.gc.ca/rss/city/${cityCode}_e.xml`;
+        const promise = AjaxHandler.getRequest(url, "application/xml");
+        return promise.then((responseXmlText: string) => {
+            const dom = new JSDOM(""); // Mimic Browser DOM
+            const DOMParser = dom.window.DOMParser;
+            const responseXmlDoc = new DOMParser().parseFromString(responseXmlText, "application/xml");
+            const responseJson = getJsonFromXml(responseXmlDoc) as WeatherFeed;
+            const response: TResponse = {
+                status: "OK",
+                code: 200,
+                payload: this.formatData(cityCode, responseJson),
+                message: "Successfully retrieved data"
+            };
+            return res.status(200).json(response);
+        }).catch((err) => {
+            let error;
+            switch (true) {
+                case err instanceof NotFoundException:
+                    error = new NotFoundException(`Cannot find weather information for city code: "${cityCode}"`);
+                    return res.status(404).json(error.response);
+                default:
+                    error = new InternalServerException(err.stack);
+                    return res.status(500).json(error.response);
             }
         });
     }

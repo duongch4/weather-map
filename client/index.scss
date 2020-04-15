@@ -1,5 +1,5 @@
 /*================================= App ========================================*/
-:root {
+:root { // IE11 can only see these variables ONCE in this file
     --main-color: #DCAF68;
     --navbar-background-color: #696969;
 
@@ -25,10 +25,8 @@
     --link-font-family: "Roboto Slab";
     --link-font-weight: 700;
 
-    --padding-section: 2em 10%;
+    --padding-section: 5em 10%;
     --padding-navbar:  0em 9%;
-
-    --progress-bar-margin-top: 3.6em;
   
     --font-size-navbar-brand: 2em;
 }

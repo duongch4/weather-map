@@ -11,6 +11,10 @@ import {
 import { ScrollToTop } from "./components/utils/ScrollToTop";
 import { MainRoutes } from "./pages/MainRoutes";
 
+import { disableConsoleWindowIfNotSupported } from "./utils/NoConsoleSupport";
+
+disableConsoleWindowIfNotSupported();
+
 const rootElem = document.getElementById("root");
 let render = () => {
     ReactDOM.render(

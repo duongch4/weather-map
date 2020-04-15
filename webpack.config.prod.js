@@ -128,7 +128,7 @@ class WebpackConfig {
                 eslint: true,
                 tsconfig: tsconfigPath,
                 async: false, // check type/lint first then build
-                workers: ForkTsCheckerWebpackPlugin.TWO_CPUS_FREE // recommended - leave two CPUs free (one for build, one for system)
+                // workers: ForkTsCheckerWebpackPlugin.TWO_CPUS_FREE // recommended - leave two CPUs free (one for build, one for system)
             }),
             new webpack.EnvironmentPlugin(envkeys.ENV_KEYS) // For CI production process!!!
         ];

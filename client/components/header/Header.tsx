@@ -6,7 +6,7 @@ export class Header extends Component<any, any> {
             <div id="navigation">
                 <nav className="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
                     <div className="container">
-                        <a className="navbar-brand" href="#home">
+                        <a className="navbar-brand" href="/">
                             Weather Map<span className="sr-only">(current)</span>
                         </a>
 

@@ -56,6 +56,7 @@ module.exports = {
         "@typescript-eslint/explicit-member-accessibility": ["error", {"overrides": {"constructors": "off"}}],
         "@typescript-eslint/consistent-type-assertions": "error",
         "@typescript-eslint/no-empty-interface": "error",
+        "@typescript-eslint/no-empty-function": "off",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-misused-new": "error",
         "@typescript-eslint/no-namespace": "error",

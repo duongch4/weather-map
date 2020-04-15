@@ -1,0 +1,50 @@
+.navbar {
+    text-transform: uppercase;
+    padding: var(--padding-navbar);
+    padding: 0em 9%;
+}
+
+.navbar-brand {
+    font-size: var(--font-size-navbar-brand);
+    font-family: var(--headers-strong-font-family);
+    font-weight: var(--headers-strong-font-weight);
+
+    font-size: 2em;
+    font-family: "Roboto";
+    font-weight: 900;
+}
+
+.navbar .navbar-brand:hover {
+    color: var(--main-color);
+    color: #DCAF68;
+}
+
+.navbar .nav-link {
+    font-family: var(--body-strong-font-family);
+    font-weight: var(--body-strong-font-weight);
+
+    font-family: "Roboto";
+    font-weight: 500;
+}
+
+.navbar .navbar-nav li a:hover {
+    color: var(--main-color) !important;
+    color: #DCAF68 !important;
+    background-color: transparent !important;
+}
+
+.navbar .navbar-nav li a:focus {
+    color: var(--main-color) !important;
+    color: #DCAF68 !important;
+    background-color: transparent !important;
+}
+
+.navbar .navbar-toggler {
+    background-color: var(--navbar-background-color);
+    background-color: #696969;
+}
+
+.navbar .navbar-toggler .burger-icon {
+    color: var(--main-color);
+    color: #DCAF68;
+}

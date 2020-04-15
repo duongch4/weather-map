@@ -1,14 +1,17 @@
 {
     "compilerOptions": {
-        "outDir": "./dist",
+        "outDir": "./dist", // for tsc cmd
         "declarationDir": "./dist/types",
         "declaration": true,
+        // "declarationMap": true,
 
         "allowJs": false,
         "checkJs": false,
 
         "strict": true,
         "sourceMap": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
 
         "removeComments": true,
         "allowSyntheticDefaultImports": true,
@@ -23,7 +26,7 @@
         // "target": "ESNext",
         "jsx": "react",
         "lib": [
-            "ES5", "ES6", "ES7", "ES2017", "ES2018", "ESNext",
+            "ES5", "ES6", "ES7", "ES2015", "ES2017", "ES2018", "ESNext",
             "DOM", "DOM.Iterable",
             // "WebWorker", //giving me error!!
             "ScriptHost",
@@ -39,11 +42,13 @@
         "paths": {
             "*": [
                 "node_modules/@types/*",
-                "src/types/staticAssests.d.ts",
+                "client/types/staticAssests.d.ts",
+                "server/types/*"
             ]
         }
     },
     "include": [
-        "./src/**/*"
-    ],
+        "./client/**/*",
+        "./server/**/*"
+    ]
 }

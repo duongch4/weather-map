@@ -1,0 +1,96 @@
+/*================================= App ========================================*/
+:root { // IE11 can only see these variables ONCE in this file
+    --main-color: #DCAF68;
+    --navbar-background-color: #696969;
+
+    --section-font-family: "Roboto Slab";
+    --section-margin-top: 0em;
+    --section-font-weight: 700;
+
+    --line-height: 1.5em;
+    --letter-spacing: 0.02em;
+
+    --headers-font-family: "Roboto Slab";
+    --headers-font-weight: 700;
+
+    --headers-strong-font-family: "Roboto";
+    --headers-strong-font-weight: 900;
+
+    --body-font-family: "Roboto";
+    --body-font-weight: 300;
+
+    --body-strong-font-family: "Roboto";
+    --body-strong-font-weight: 500;
+    
+    --link-font-family: "Roboto Slab";
+    --link-font-weight: 700;
+
+    --padding-section: 5em 10%;
+    --padding-navbar:  0em 9%;
+  
+    --font-size-navbar-brand: 2em;
+}
+
+body h1, h2, h3, h4, h5, h6 {
+	line-height: var(--line-height);
+    letter-spacing: var(--letter-spacing);
+    font-family: var(--headers-font-family);
+    font-weight: var(--headers-font-weight);
+}
+
+body h1 {
+    color: var(--main-color);
+}
+
+body h1 strong, h2 strong, h3 strong, h4 strong, h5 strong, h6 strong {
+    line-height: var(--line-height);
+    letter-spacing: var(--letter-spacing);
+    font-family: var(--headers-strong-font-family);
+    font-weight: var(--headers-strong-font-weight);
+}
+
+body p {
+    text-align: left;
+	line-height: var(--line-height);
+    letter-spacing: var(--letter-spacing);
+    font-family: var(--body-font-family);
+    font-weight: var(--body-font-weight);
+}
+
+body p strong {
+	line-height: var(--line-height);
+    letter-spacing: var(--letter-spacing);
+    font-family: var(--body-strong-font-family);
+    font-weight: var(--body-strong-font-weight);
+}
+
+body #profile .header, #projects .header, #contact .header, #credit .header  {
+    color: var(--main-color);
+    font-family: var(--section-font-family);
+    font-weight: var(--section-font-weight);
+    margin-top: var(--section-margin-top);
+}
+
+body a {
+    color: var(--main-color);
+    font-family: var(--link-font-family);
+    font-weight: var(--link-font-weight);
+}
+
+body .btn {
+    $color: #DCAF68;
+    background-color: var(--main-color);
+    border-color: var(--main-color);
+    color: white;
+    margin: 5px;
+    &:hover {
+        background-color: darken($color, 10%);
+        border-color: lighten($color, 10%);
+        color: white;
+    }
+    &:focus {
+        outline: 0;
+        -webkit-box-shadow: 0 0 0 0.2rem darken($color, 20%);
+        box-shadow: 0 0 0 0.2rem darken($color, 20%);
+    }
+}

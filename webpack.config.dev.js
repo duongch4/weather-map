@@ -8,6 +8,7 @@ const ImageminPlugin = require("imagemin-webpack-plugin").default;
 const MomentLocalesPlugin = require("moment-locales-webpack-plugin");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin"); // to use with transpileOnly in ts-loader
 const ForkTsCheckerNotifierWebpackPlugin = require("fork-ts-checker-notifier-webpack-plugin");
+const nodeExternals = require("webpack-node-externals"); // for backend
 const path = require("path");
 const dotenv = require("dotenv").config({ path: path.resolve(__dirname, "./.env.dev") });
 
@@ -26,11 +27,11 @@ class WebpackConfig {
     setTranspilationLoader() {
         return {
             test: /\.(ts|js)x?$/,
-            exclude: /node_modules/,
+            exclude: /@babel(?:\/|\\{1,2})runtime|core-js/,
             loader: "babel-loader",
             options: {
-                // babelrc: true,
                 rootMode: "upward",
+                configFile: path.resolve(__dirname, "babel.config.js"),
                 cacheDirectory: true
             }
         };
@@ -89,13 +90,27 @@ class WebpackConfig {
 
     setFileLoaderClient() {
         return {
-            test: /\.(jpe?g|png|gif|svg|pdf|mp4|7z)$/,
+            test: /\.(jpe?g|png|gif|svg|pdf)$/,
             use: [
                 {
                     loader: "file-loader",
                     options: {
                         name: "[name].[ext]",
                         outputPath: "assets"
+                    }
+                }
+            ]
+        };
+    }
+
+    setFileLoaderServer() {
+        return {
+            test: /\.(jpe?g|png|gif|svg|pdf)$/,
+            use: [
+                {
+                    loader: "file-loader",
+                    options: {
+                        emitFile: false
                     }
                 }
             ]
@@ -116,7 +131,10 @@ class WebpackConfig {
             new MomentLocalesPlugin({
                 localesToKeep: ["en", "en-ca"],
             }),
-            new webpack.HotModuleReplacementPlugin()
+            new webpack.HotModuleReplacementPlugin(),
+            new webpack.DefinePlugin({
+                "process.env": JSON.stringify(dotenv.parsed)
+            })
         ];
         if (forBuildServerOnceToWatch) {
             return base;
@@ -147,6 +165,12 @@ class WebpackConfig {
             historyApiFallback: true,
             clientLogLevel: "info", // debug, trace, silent, warn, error
             stats: "minimal", // errors-only, errors-warnings
+            proxy: [
+                {
+                    context: ["/api/**"],
+                    target: "http://localhost:3000"
+                }
+            ]
         };
     }
 
@@ -168,13 +192,11 @@ class WebpackConfig {
             name: instanceName,
             target: "web",
             ...this.setModeResolve(),
-            entry: {
-                // main: [entryTsPath].concat(glob.sync(allStyles))
-                main: [coreJsPath, regenetorRuntimePath, entryTsPath].concat(glob.sync(allStyles))
-            },
+            entry: [coreJsPath, regenetorRuntimePath, entryTsPath].concat(glob.sync(allStyles)),
             output: {
                 filename: "[name].js",
                 path: outPath,
+                publicPath: "/" // (this + historyApiFallBack) fix client-side routing in dev mode
             },
             devServer: this.setDevServer(outPath),
             module: {
@@ -205,9 +227,6 @@ class WebpackConfig {
                     chunkfilename: "[id].css"
                 }),
                 new ImageminPlugin({}),
-                new webpack.DefinePlugin({
-                    "process.env": JSON.stringify(dotenv.parsed)
-                })
             ],
             externals: {
                 "react": "React",
@@ -217,19 +236,95 @@ class WebpackConfig {
             },
         };
     }
+
+    setServerConfig(
+        fromDir = "./server", entryTs = "server.ts", toDir = "./dist",
+        toServerFile = "server.js", instanceName = "server",
+        tsconfigPath = "./tsconfig.server.json", forBuildServerOnceToWatch = false
+    ) {
+        const entryTsPath = path.resolve(__dirname, fromDir, entryTs);
+        const outPath = path.resolve(__dirname, toDir);
+
+        return {
+            name: instanceName,
+            target: "node",
+            ...this.setModeResolve(),
+            entry: ["webpack/hot/poll?1000", entryTsPath],
+            output: {
+                filename: toServerFile,
+                path: outPath,
+            },
+            module: {
+                rules: [
+                    this.setJavascriptSourceMapLoader(),
+                    this.setTranspilationLoader(),
+                    this.setFileLoaderServer()
+                ]
+            },
+            optimization: {
+                minimizer: [this.setOptMinimizerUglifyJs()]
+            },
+            plugins: this.setCommonPlugins(tsconfigPath, forBuildServerOnceToWatch),
+            externals: [
+                nodeExternals({
+                    whitelist: ["webpack/hot/poll?1000"]
+                })
+            ],
+            node: {
+                // console: false,
+                // globale: false,
+                // process: false,
+                // Buffer: false,
+                __filename: false,
+                __dirname: false
+            }
+        };
+    }
 }
 
 module.exports = (env, argv) => {
-    let forBuild = true;
+    const webpackConfig = new WebpackConfig();
 
-    if (argv["stack"] === "watch") {
-        forBuild = false;
+    if (argv["stack"] === "client") {
+        const client = webpackConfig.setClientConfig(
+            fromDir = "./client", entryTs = "index.tsx", entryHtml = "index.html",
+            toDir = "./dist/client", instanceName = "client", forBuild = false,
+            htmlTitle = "Weather Map", faviconPath = "./client/assets/png/titleImg.png",
+            tsconfigPath = path.resolve(__dirname, "./tsconfig.client.json")
+        );
+        return client;
     }
-
-    return new WebpackConfig().setClientConfig(
-        fromDir = "./src", entryTs = "index.tsx", entryHtml = "index.html",
-        toDir = "./dist", instanceName = "client", forBuild = forBuild,
-        htmlTitle = "Weather Map", faviconPath = "./src/assets/png/titleImg.png",
-        tsconfigPath = path.resolve(__dirname, "./tsconfig.json")
-    );
+    else if (argv["stack"] === "server-build-once") {
+        const server = webpackConfig.setServerConfig(
+            fromDir = "./server", entryTs = "server.ts", toDir = "./dist",
+            toServerFile = "server.js", instanceName = "server",
+            tsconfigPath = path.resolve(__dirname, "./tsconfig.server.json"),
+            forBuildServerOnceToWatch = true
+        );
+        return server;
+    }
+    else if (argv["stack"] === "server") {
+        const server = webpackConfig.setServerConfig(
+            fromDir = "./server", entryTs = "server.ts", toDir = "./dist",
+            toServerFile = "server.js", instanceName = "server",
+            tsconfigPath = path.resolve(__dirname, "./tsconfig.server.json"),
+            forBuildServerOnceToWatch = false
+        );
+        return server;
+    }
+    else { // build both
+        const client = webpackConfig.setClientConfig(
+            fromDir = "./client", entryTs = "index.tsx", entryHtml = "index.html",
+            toDir = "./dist/client", instanceName = "client", forBuild = true,
+            htmlTitle = "Weather Map", faviconPath = "./client/assets/png/titleImg.png",
+            tsconfigPath = path.resolve(__dirname, "./tsconfig.client.json")
+        );
+        const server = webpackConfig.setServerConfig(
+            fromDir = "./server", entryTs = "server.ts", toDir = "./dist",
+            toServerFile = "server.js", instanceName = "server",
+            tsconfigPath = path.resolve(__dirname, "./tsconfig.server.json"),
+            forBuildServerOnceToWatch = false
+        );
+        return [client, server];
+    }
 };

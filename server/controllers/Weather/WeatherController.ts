@@ -10,17 +10,6 @@ import { JSDOM } from "jsdom";
 @Controller("api/weather")
 export class WeatherController {
 
-    @Get()
-    public getWeatherTest(_req: Request, res: Response) {
-        const response: TResponse = {
-            status: "OK",
-            code: 200,
-            payload: "this.formatData(cityCode, responseJson)",
-            message: "Successfully retrieved data"
-        };
-        return res.status(200).json(response);
-    }
-
     @Get(":cityCode")
     public getWeather(req: Request, res: Response): Promise<any> {
         const cityCode = req.params.cityCode;

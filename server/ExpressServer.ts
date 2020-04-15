@@ -14,9 +14,6 @@ import { Server } from "@overnightjs/core";
 import { Logger } from "@overnightjs/logger";
 import * as controllers from "./controllers";
 
-// API keys and Passport configuration
-// import passportConfig from "./auth/passport";
-
 // Create Express server
 export class ExpressServer extends Server {
 
@@ -42,7 +39,7 @@ export class ExpressServer extends Server {
 
     public listen(port: string): http.Server {
         const server = this.app.listen(port, () => {
-            Logger.Info(`App is running at PORT ${port} in "${this.app.get("env")}" mode`);
+            Logger.Info(`App is running at PORT ${port} in "${process.env.NODE_ENV}" mode`);
             if (process.env.NODE_ENV !== "production") {
                 Logger.Info("Press CTRL-C to stop");
             }
@@ -67,7 +64,7 @@ export class ExpressServer extends Server {
             res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,DELETE");
             res.setHeader("Access-Control-Allow-Headers",
                 "Access-Control-Allow-Headers, Origin, Accept, X-Requested-With, Content-Type, " +
-                "Access-Control-Request-Method, Access-Control-Request-Headers");
+                "Access-Control-Request-Method, Access-Control-Request-Headers, Pragma, Cache-Control");
             next();
         });
     }

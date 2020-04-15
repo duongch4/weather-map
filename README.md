@@ -8,6 +8,7 @@
 1. Create `.env` for testing production build and `.env.dev` for development
 ```
 GOOGLE_MAP_API_KEY=<Your Google Map API Key>
+OVERNIGHT_LOGGER_MODE=<FILE/OFF/CONSOLE>
 ```
 2. Run npm commands:
     1. Development Mode:

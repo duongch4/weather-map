@@ -11,7 +11,6 @@ const ForkTsCheckerNotifierWebpackPlugin = require("fork-ts-checker-notifier-web
 const nodeExternals = require("webpack-node-externals"); // for backend
 const path = require("path");
 const dotenv = require("dotenv").config({ path: path.resolve(__dirname, "./.env.dev") });
-const fs = require("fs");
 
 class WebpackConfig {
     setModeResolve() {
@@ -28,10 +27,11 @@ class WebpackConfig {
     setTranspilationLoader() {
         return {
             test: /\.(ts|js)x?$/,
-            exclude: /node_modules/,
+            exclude: /@babel(?:\/|\\{1,2})runtime|core-js/,
             loader: "babel-loader",
             options: {
                 rootMode: "upward",
+                configFile: path.resolve(__dirname, "babel.config.js"),
                 cacheDirectory: true
             }
         };
@@ -165,9 +165,9 @@ class WebpackConfig {
             historyApiFallback: true,
             clientLogLevel: "info", // debug, trace, silent, warn, error
             stats: "minimal", // errors-only, errors-warnings
-            proxy: [ // Will not work if server-controller methods are using Promises!!! Have to use actual Domain!
+            proxy: [
                 {
-                    context: ["/api/*"],
+                    context: ["/api/**"],
                     target: "http://localhost:3000"
                 }
             ]
@@ -245,10 +245,6 @@ class WebpackConfig {
         const entryTsPath = path.resolve(__dirname, fromDir, entryTs);
         const outPath = path.resolve(__dirname, toDir);
 
-        if (dotenv.parsed["OVERNIGHT_LOGGER_MODE"] && dotenv.parsed["OVERNIGHT_LOGGER_MODE"] === "FILE") {
-            this.setServerLogPath();
-        }
-
         return {
             name: instanceName,
             target: "node",
@@ -284,16 +280,6 @@ class WebpackConfig {
             }
         };
     }
-
-    setServerLogPath() {
-        const logFileDir = path.join(__dirname, "log");
-        const today = new Date().toDateString().split(" ").join("_");
-        const logFilePath = path.join(logFileDir, `backend_${today}.log`);
-        if (!fs.existsSync(logFileDir)) {
-            fs.mkdirSync(logFileDir);
-        }
-        dotenv.parsed["OVERNIGHT_LOGGER_FILEPATH"] = logFilePath;
-    }
 }
 
 module.exports = (env, argv) => {
@@ -303,7 +289,7 @@ module.exports = (env, argv) => {
         const client = webpackConfig.setClientConfig(
             fromDir = "./client", entryTs = "index.tsx", entryHtml = "index.html",
             toDir = "./dist/client", instanceName = "client", forBuild = false,
-            htmlTitle = "MERN", faviconPath = "./client/assets/png/titleImg.png",
+            htmlTitle = "Weather Map", faviconPath = "./client/assets/png/titleImg.png",
             tsconfigPath = path.resolve(__dirname, "./tsconfig.client.json")
         );
         return client;

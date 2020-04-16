@@ -8,16 +8,25 @@ const ImageminPlugin = require("imagemin-webpack-plugin").default;
 const MomentLocalesPlugin = require("moment-locales-webpack-plugin");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin"); // to use with transpileOnly in ts-loader
 const nodeExternals = require("webpack-node-externals"); // for backend
-const path = require("path");
 const envkeys = require("./envkeys.config");
+const fs = require("fs");
+const dotenv = require("dotenv");
+const webpackConstants = require("./webpack.config.const");
 
 class WebpackConfig {
+
+    constructor() {
+        this.common = { envFilePath: webpackConstants.envFilePathProd, ...webpackConstants.common };
+        this.client = { ...webpackConstants.client, ...webpackConstants.clientPages };
+        this.server = webpackConstants.server;
+    }
+
     setModeResolve() {
         return {
             mode: "production",
             resolve: {
                 extensions: [".ts", ".tsx", ".js", ".json"],
-                modules: [path.resolve(__dirname, "node_modules")]
+                modules: [this.common.nodeModulesPath]
             },
         };
     }
@@ -29,7 +38,7 @@ class WebpackConfig {
             loader: "babel-loader",
             options: {
                 rootMode: "upward",
-                configFile: path.resolve(__dirname, "babel.config.js"),
+                configFile: this.common.babelConfigPath,
                 cacheDirectory: true
             }
         };
@@ -64,7 +73,7 @@ class WebpackConfig {
                     loader: "postcss-loader",
                     options: {
                         config: {
-                            path: path.resolve(__dirname, "postcss.config.js")
+                            path: this.client.postcssConfigPath
                         }
                     },
                 },
@@ -132,40 +141,30 @@ class WebpackConfig {
             }),
             new webpack.EnvironmentPlugin(envkeys.ENV_KEYS) // For CI production process!!!
         ];
-        if (require("fs").existsSync(path.resolve(__dirname, "./.env"))) {
+        if (fs.existsSync(this.common.envFilePath)) {
             const fromDotEnv = new webpack.DefinePlugin({
-                "process.env": JSON.stringify(require("dotenv").config({ path: path.resolve(__dirname, "./.env") }).parsed)
-            })
+                "process.env": JSON.stringify(dotenv.config({ path: this.common.envFilePath }).parsed)
+            });
             return [...plugins, fromDotEnv];
         }
         return plugins;
     }
 
-    setClientConfig(
-        fromDir = "./client", entryTs = "index.tsx", entryHtml = "index.html",
-        toDir = "./dist/client", instanceName = "client",
-        htmlTitle = "MERN", faviconPath = "./client/assets/png/titleImg.png",
-        tsconfigPath = "./tsconfig.client.json"
-    ) {
-        const entryTsPath = path.resolve(__dirname, fromDir, entryTs);
-        const entryHtmlPath = path.resolve(__dirname, fromDir, entryHtml);
-        const allStyles = path.resolve(__dirname, fromDir, "**", "*.scss");
-        const outPath = path.resolve(__dirname, toDir);
-
-        const coreJsPath = path.resolve(__dirname, "./node_modules", "core-js/stable"); // polyfill
-        const regenetorRuntimePath = path.resolve(__dirname, "./node_modules", "regenerator-runtime/runtime"); // polyfill
-
+    setClientConfig() {
         return {
-            name: instanceName,
+            name: this.client.instanceName,
             target: "web",
             ...this.setModeResolve(),
             entry: {
-                main: [coreJsPath, regenetorRuntimePath, entryTsPath].concat(glob.sync(allStyles)),
-                pageIntro: path.resolve(__dirname, fromDir, "./pages/intro/IntroPage.tsx")
+                main: [
+                    this.client.coreJsPath, this.client.regenetorRuntimePath,
+                    this.client.entryTsPath
+                ].concat(glob.sync(this.client.allStylingPaths)),
+                homePage: this.client.homePagePath
             },
             output: {
                 filename: "[name].[contenthash:8].js",
-                path: outPath,
+                path: this.client.distPath,
                 publicPath: "/" // (this + app.get("/*", ...)) fix client-side routing in prod mode
             },
             module: {
@@ -202,12 +201,12 @@ class WebpackConfig {
                 }
             },
             plugins: [
-                ...this.setCommonPlugins(tsconfigPath),
+                ...this.setCommonPlugins(this.client.tsconfigPath),
                 new HtmlWebpackPlugin({
                     inject: true,
-                    template: entryHtmlPath,
-                    title: htmlTitle,
-                    favicon: faviconPath,
+                    template: this.client.entryHtmlPath,
+                    title: this.client.htmlTitle,
+                    favicon: this.client.faviconPath,
                     hash: true,
                     minify: {
                         removeComments: true,
@@ -237,22 +236,15 @@ class WebpackConfig {
         };
     }
 
-    setServerConfig(
-        fromDir = "./server", entryTs = "server.ts", toDir = "./dist",
-        toServerFile = "server.js", instanceName = "server",
-        tsconfigPath = "./tsconfig.server.json"
-    ) {
-        const entryTsPath = path.resolve(__dirname, fromDir, entryTs);
-        const outPath = path.resolve(__dirname, toDir);
-
+    setServerConfig() {
         return {
-            name: instanceName,
+            name: this.server.instanceName,
             target: "node",
             ...this.setModeResolve(),
-            entry: [entryTsPath],
+            entry: [this.server.entryTsPath],
             output: {
-                filename: toServerFile,
-                path: outPath
+                filename: this.server.toServerFile,
+                path: this.server.distPath
             },
             module: {
                 rules: [
@@ -264,7 +256,7 @@ class WebpackConfig {
             optimization: {
                 minimizer: [this.setOptMinimizerUglifyJs()]
             },
-            plugins: this.setCommonPlugins(tsconfigPath),
+            plugins: this.setCommonPlugins(this.server.tsconfigPath),
             externals: [nodeExternals()],
             node: {
                 // console: false,
@@ -280,18 +272,7 @@ class WebpackConfig {
 
 module.exports = () => {
     const webpackConfig = new WebpackConfig();
-
-    const client = webpackConfig.setClientConfig(
-        fromDir = "./client", entryTs = "index.tsx", entryHtml = "index.html",
-        toDir = "./dist/client", instanceName = "client",
-        htmlTitle = "Weather Map", faviconPath = "./client/assets/png/titleImg.png",
-        tsconfigPath = path.resolve(__dirname, "./tsconfig.client.json")
-    );
-    const server = webpackConfig.setServerConfig(
-        fromDir = "./server", entryTs = "server.ts", toDir = "./dist",
-        toServerFile = "server.js", instanceName = "server",
-        tsconfigPath = path.resolve(__dirname, "./tsconfig.server.json")
-    );
-
+    const client = webpackConfig.setClientConfig();
+    const server = webpackConfig.setServerConfig()
     return [client, server];
 };

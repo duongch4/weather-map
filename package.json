@@ -38,6 +38,7 @@
     "author": "Bang Chi Duong",
     "license": "ISC",
     "dependencies": {
+        "@google/markerclustererplus": "^5.0.4",
         "@overnightjs/core": "^1.6.9",
         "@overnightjs/logger": "^1.1.9",
         "axios": "^0.19.2",
@@ -48,7 +49,7 @@
         "errorhandler": "^1.5.1",
         "express": "^4.17.1",
         "jsdom": "^16.2.2",
-        "lodash": "^4.17.14",
+        "lodash": "^4.17.19",
         "lusca": "^1.6.1",
         "path": "^0.12.7",
         "react": "^16.12.0",
@@ -104,7 +105,7 @@
         "mini-css-extract-plugin": "^0.7.0",
         "moment": "^2.24.0",
         "moment-locales-webpack-plugin": "^1.1.2",
-        "node-sass": "^4.13.1",
+        "node-sass": "^4.14.1",
         "optimize-css-assets-webpack-plugin": "^5.0.3",
         "postcss": "^7.0.27",
         "postcss-import": "^12.0.1",
@@ -123,7 +124,7 @@
         "typescript": "^3.7.3",
         "webpack": "^4.41.3",
         "webpack-cli": "^3.3.10",
-        "webpack-dev-server": "^3.9.0",
+        "webpack-dev-server": "^3.11.0",
         "webpack-node-externals": "^1.7.2"
     },
     "engines": {

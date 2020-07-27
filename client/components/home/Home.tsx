@@ -8,6 +8,7 @@ import { AjaxHandler } from "../../utils/AjaxHandler";
 import { AlertMessage } from "../utils/AlertMessage";
 import { TResponse } from "../../communication/TResponse";
 import * as mapMarkerIcon from "../../assets/svg/mapMarkerIcon.svg";
+import MarkerClusterer from "@google/markerclustererplus";
 
 type HomeProps = {
     hideProgressBar: () => void;
@@ -114,61 +115,75 @@ export class Home extends Component<HomeProps, HomeState> {
         });
     }
 
+
+    private getMarkerIcon = () => (
+        {
+            url: mapMarkerIcon,
+            scaledSize: new google.maps.Size(30, 30),
+            origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(14, 30),
+            labelOrigin: new google.maps.Point(13, -10)
+        }
+    )
+
+    private onMapLoad = (map: google.maps.Map<HTMLElement>) => {
+        for (const city in LOCATIONS) {
+            const labelText = this.state.weather[LOCATIONS[city].code].current?.title.split(":")[1] as string;
+            const marker = new window.google.maps.Marker({
+                position: { lat: LOCATIONS[city].lat, lng: LOCATIONS[city].lng },
+                map: map,
+                title: city, // Acting as an ID for this marker
+                animation: google.maps.Animation.DROP,
+                icon: this.getMarkerIcon(),
+                label: {
+                    // text: "labelText",
+                    text: labelText,
+                    color: "red",
+                    fontSize: "16px",
+                    fontWeight: "bold"
+                }
+            });
+
+            this.state.markers[LOCATIONS[city].code] = marker;
+
+            marker.addListener("click", (e) => {
+                this.createInfoWindow(e, map, city, LOCATIONS[city].code);
+            });
+        }
+        const _ = new MarkerClusterer(
+            map, Object.values(this.state.markers),
+            { imagePath: "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m" }
+        );
+    }
+
+    private renderHomeSuccess = () => (
+        <div id="home" className="container-fluid">
+            <AlertMessage message={this.state.errMessage} />
+            <div className="row">
+                <GoogleMap
+                    id="google-map"
+                    options={{
+                        center: { lat: 54.726669, lng: -127.647621 },
+                        zoom: 5
+                    }}
+                    onMapLoad={this.onMapLoad}
+                />
+            </div>
+        </div>
+    )
+
+    private renderHomeOnLoad = () => (
+        <div id="home" className="container-fluid">
+            <AlertMessage message={this.state.errMessage} />
+        </div>
+    )
+
     public render() {
         if (this.state.progress < 100) {
-            return (
-                <div id="home" className="container-fluid">
-                    <AlertMessage message={this.state.errMessage} />
-                </div>
-            );
+            return this.renderHomeOnLoad();
         }
         else {
-            return (
-                <div id="home" className="container-fluid">
-                    <AlertMessage message={this.state.errMessage} />
-                    <div className="row">
-                        <GoogleMap
-                            id="google-map"
-                            options={{
-                                center: { lat: 54.726669, lng: -127.647621 },
-                                zoom: 5
-                            }}
-                            onMapLoad={(map) => {
-                                const markerIcon = {
-                                    url: mapMarkerIcon,
-                                    scaledSize: new google.maps.Size(30, 30),
-                                    origin: new google.maps.Point(0, 0),
-                                    anchor: new google.maps.Point(14, 30),
-                                    labelOrigin: new google.maps.Point(13, -10)
-                                };
-                                for (const city in LOCATIONS) {
-                                    const labelText = this.state.weather[LOCATIONS[city].code].current?.title.split(":")[1] as string;
-                                    const marker = new window.google.maps.Marker({
-                                        position: { lat: LOCATIONS[city].lat, lng: LOCATIONS[city].lng },
-                                        map: map,
-                                        title: city, // Acting as an ID for this marker
-                                        animation: google.maps.Animation.DROP,
-                                        icon: markerIcon,
-                                        label: {
-                                            // text: "labelText",
-                                            text: labelText,
-                                            color: "red",
-                                            fontSize: "16px",
-                                            fontWeight: "bold"
-                                        }
-                                    });
-
-                                    this.state.markers[LOCATIONS[city].code] = marker;
-
-                                    marker.addListener("click", (e) => {
-                                        this.createInfoWindow(e, map, city, LOCATIONS[city].code);
-                                    });
-                                }
-                            }}
-                        />
-                    </div>
-                </div>
-            );
+            return this.renderHomeSuccess();
         }
     }
 }

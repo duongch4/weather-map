@@ -41,7 +41,7 @@
         "@google/markerclustererplus": "^5.0.4",
         "@overnightjs/core": "^1.6.9",
         "@overnightjs/logger": "^1.1.9",
-        "axios": "^0.19.2",
+        "axios": "^0.21.1",
         "body-parser": "^1.19.0",
         "compression": "^1.7.4",
         "core-js": "^3.6.5",
